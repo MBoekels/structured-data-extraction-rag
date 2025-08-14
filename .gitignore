@@ -1,0 +1,39 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual Environment
+.venv
+app-venv-py311/
+ENV/
+env/
+
+# Environment variables
+.env
+
+# IDE settings
+.idea/
+.vscode/
+.aiexclude
+
+# SQLite
+*.db
+*.sqlite3
+*.db-journal
+
+# Project-specific folders
+/data/
+/uploads/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Description files
+thesis_markdown.md
