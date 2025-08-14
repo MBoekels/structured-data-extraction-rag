@@ -34,13 +34,13 @@ graph TD
     end
 
     subgraph "Data & Storage"
-        C[SQLite Database <br> (Metadata, Results)]
-        D[Qdrant Vector Store <br> (Embeddings)]
-        E[File System <br> (PDFs, Docling Cache)]
+        C["SQLite Database<br>(Metadata, Results)"]
+        D["Qdrant Vector Store<br>(Embeddings)"]
+        E["File System<br>(PDFs, Docling Cache)"]
     end
 
     subgraph "External Services"
-        F[LLM API <br> (e.g., DeepSeek)]
+        F["LLM API<br>(e.g., DeepSeek)"]
         G[Embedding Model API]
     end
 
