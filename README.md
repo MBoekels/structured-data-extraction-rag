@@ -1,6 +1,6 @@
 # Structured Data Extraction with a Hybrid RAG System
 
-This repository contains the source code for a Master's Thesis project focused on extracting structured data from complex documents like corporate sustainability and financial reports. The project is a full-stack application implementing a two-stage conversational Retrieval-Augmented Generation (RAG) pipeline.
+This repository contains the source code for a Master's Thesis project focused on extracting structured data from complex documents like corporate sustainability and financial reports. The project is a full-stack application implementing a novel, two-stage conversational Retrieval-Augmented Generation (RAG) pipeline.
 
 ## 📖 Abstract
 
@@ -34,13 +34,13 @@ graph TD
     end
 
     subgraph "Data & Storage"
-        C[SQLite Database <br> (Metadata, Results)]
-        D[Qdrant Vector Store <br> (Embeddings)]
-        E[File System <br> (PDFs, Docling Cache)]
+        C["SQLite Database<br>(Metadata, Results)"]
+        D["Qdrant Vector Store<br>(Embeddings)"]
+        E["File System<br>(PDFs, Docling Cache)"]
     end
 
     subgraph "External Services"
-        F[LLM API <br> (e.g., DeepSeek)]
+        F["LLM API<br>(e.g., DeepSeek)"]
         G[Embedding Model API]
     end
 
@@ -73,7 +73,7 @@ graph TD
 
 1.  **Clone the repository:**
     ```bash
-    git clone <your-repository-url>
+    git clone https://github.com/MBoekels/structured-data-extraction-rag.git
     cd App
     ```
 
@@ -104,19 +104,49 @@ graph TD
 
 ### Running the Application
 
-The application consists of two main components that need to be run separately: the backend server and the frontend interface.
+The application requires multiple components to be running in parallel: two Docker containers for services, the Python backend, and the Python frontend.
 
-1.  **Start the Backend Server:**
-    The backend will automatically attempt to start a Qdrant Docker container if one is not already running. Ensure Docker is running on your machine.
+**1. Start Required Services (Docker)**
 
-    Open a terminal, navigate to the `App` directory, and run:
+You need two Docker containers running. Open two separate terminals for these commands.
+
+*   **Terminal 1: Start Qdrant**
+    This container stores the vector embeddings of your documents.
     ```bash
-    uvicorn backend.main:app --reload
+    docker run -p 6333:6333 -p 6334:6334 \
+        --name qdrant-rag-app \
+        -v $(pwd)/qdrant_storage:/qdrant/storage \
+        qdrant/qdrant
     ```
-    The API will be available at `http://127.0.0.1:8000`. You can view the auto-generated documentation at `http://127.0.0.1:8000/docs`.
 
-2.  **Start the Frontend Application:**
-    Open a second terminal, navigate to the `App` directory, and run:
+*   **Terminal 2: Start vLLM Embedding Model**
+    This container serves the embedding model. **A GPU with CUDA is required.** Ensure you have the NVIDIA Container Toolkit installed.
+    The model name is configured in `config/settings.py` (e.g., `Qwen/Qwen3-Embedding-0.6B`).
+    ```bash
+    docker run --gpus all -p 8000:8000 \
+        --name vllm-embedding-server \
+        -v ~/.cache/huggingface:/root/.cache/huggingface \
+        ghcr.io/vllm-project/vllm-openai:latest \
+        --model Qwen/Qwen3-Embedding-0.6B
+    ```
+    *Note: The application expects this service at `http://localhost:8000/v1`.*
+
+**2. Start the Backend Server**
+
+This server handles all the application logic. It must run on a different port than the vLLM server. We'll use port 8001.
+
+*   **Terminal 3: Start FastAPI**
+    Navigate to the `App` directory and run:
+    ```bash
+    uvicorn backend.main:app --reload --port 8001
+    ```
+    The API will be available at `http://127.0.0.1:8001`. You can view the auto-generated documentation at `http://127.0.0.1:8001/docs`.
+    *(Important: Ensure the `API_BASE` variable in your frontend's configuration points to `http://127.0.0.1:8001`)*
+
+**3. Start the Frontend Application**
+
+*   **Terminal 4: Start Streamlit**
+    Open a new terminal, navigate to the `App` directory, and run:
     ```bash
     streamlit run Home.py
     ```
