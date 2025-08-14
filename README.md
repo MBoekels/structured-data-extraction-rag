@@ -148,7 +148,7 @@ This server handles all the application logic. It must run on a different port t
 *   **Terminal 4: Start Streamlit**
     Open a new terminal, navigate to the `App` directory, and run:
     ```bash
-    streamlit run Home.py
+    streamlit run Dashboard.py
     ```
     The web application will be available at the local URL displayed in your terminal (usually `http://localhost:8501`).
 
@@ -173,7 +173,7 @@ App/
 │   └── vector_store.py # Qdrant vector store management
 ├── data/               # Data storage (SQLite DB, docling cache)
 ├── frontend/           # Streamlit application pages
-│   ├── Home.py
+│   ├── Dashboard.py
 │   └── pages/
 ├── tests/              # Pytest tests for the backend
 ├── uploads/            # Storage for uploaded PDF files
