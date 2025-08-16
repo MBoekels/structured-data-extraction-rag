@@ -40,8 +40,8 @@ graph TD
     end
 
     subgraph "External Services"
-        F["LLM API<br>(e.g., DeepSeek)"]
-        G[Embedding Model API]
+        F["LLM API<br>(DeepSeek-R1)"]
+        G["Embedding Model API<br>(Qwen3-Embedding)"]
     end
 
     A -- "REST API Calls (for write/compute)" --> B
