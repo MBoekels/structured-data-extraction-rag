@@ -62,7 +62,7 @@ class DatabaseManager:
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     query_text TEXT NOT NULL,
                     output_schema TEXT, -- JSON string
-                    query_embedding_json TEXT, -- JSON string for the embedding
+                    query_embedding TEXT, -- JSON string for the embedding
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
@@ -169,7 +169,7 @@ class DatabaseManager:
         """Saves a user query, its schema, and its embedding."""
         with self.conn:
             cursor = self.conn.execute(
-                "INSERT INTO queries (query_text, output_schema, query_embedding_json) VALUES (?, ?, ?)",
+                "INSERT INTO queries (query_text, output_schema, query_embedding) VALUES (?, ?, ?)",
                 (query_text, json.dumps(schema), json.dumps(query_embedding))
             )
             return cursor.lastrowid
@@ -185,7 +185,7 @@ class DatabaseManager:
         """Retrieves query information by its ID."""
         with self.conn:
             cursor = self.conn.execute(
-                "SELECT query_text, output_schema, query_embedding_json FROM queries WHERE id = ?",
+                "SELECT query_text, output_schema, query_embedding FROM queries WHERE id = ?",
                 (query_id,)
             )
             row = cursor.fetchone()
@@ -193,7 +193,7 @@ class DatabaseManager:
                 return {
                     'query_text': row['query_text'],
                     'schema_json': json.loads(row['output_schema']),
-                    'query_embedding': json.loads(row['query_embedding_json'])
+                    'query_embedding': json.loads(row['query_embedding'])
                 }
             return None
 
