@@ -78,35 +78,35 @@ def fetch_companies_for_filter():
         cursor.execute("SELECT id, name FROM companies")
         return [dict(row) for row in cursor.fetchall()]
 
-def render_pdf_page_with_bboxes(file_path, page_num, bboxes, encompass=False):
+def render_pdf_page_with_bboxes(file_path, page_num, bboxes, encompass=False, scale=2.0):
     try:
         pdf = pdfium.PdfDocument(file_path)
         page = pdf.get_page(page_num - 1)  # pypdfium2 is 0-indexed
-        image = page.render().to_pil()
+        image = page.render(scale=scale).to_pil()
 
         draw = ImageDraw.Draw(image)
         page_width, page_height = image.size
 
         if encompass and bboxes:
-            min_x = min(b['l'] for b in bboxes) / 1000 * page_width
-            min_y = min(b['b'] for b in bboxes) / 1000 * page_height
-            max_x = max(b['r'] for b in bboxes) / 1000 * page_width
-            max_y = max(b['t'] for b in bboxes) / 1000 * page_height
+            min_x = min(b['l'] for b in bboxes) * scale
+            min_y = page_height - (max(b['t'] for b in bboxes)*scale)
+            max_x = max(b['r'] for b in bboxes) * scale
+            max_y = page_height - (min(b['b'] for b in bboxes) * scale)
             draw.rectangle([min_x, min_y, max_x, max_y], outline="green", width=3)
         else:
             for bbox_dict in bboxes:
                 # The bbox format from docling is a dictionary with keys l, t, r, b
-                x0 = bbox_dict['l']
-                y0 = bbox_dict['b'] # Invert t and b for correct drawing
-                x1 = bbox_dict['r']
-                y1 = bbox_dict['t']
+                x0 = bbox_dict['l'] * scale
+                y0 = page_height - (bbox_dict['t'] * scale)
+                x1 = bbox_dict['r'] * scale
+                y1 = page_height - (bbox_dict['b'] * scale)
                 
                 # Convert bbox coordinates from relative to absolute
                 abs_bbox = [
-                    x0 / 1000 * page_width,
-                    y0 / 1000 * page_height,
-                    x1 / 1000 * page_width,
-                    y1 / 1000 * page_height,
+                    x0,
+                    y0,
+                    x1,
+                    y1,
                 ]
                 draw.rectangle(abs_bbox, outline="red", width=2)
 
@@ -115,17 +115,17 @@ def render_pdf_page_with_bboxes(file_path, page_num, bboxes, encompass=False):
         st.error(f"Failed to render PDF page: {e}")
         return None
 
-def crop_image_to_bboxes(image, bboxes):
+def crop_image_to_bboxes(image, bboxes, scale=2.0):
     if not bboxes:
         return image
 
     page_width, page_height = image.size
 
     # Find the min and max coordinates to create an encompassing bounding box
-    min_x = min(b['l'] for b in bboxes) / 1000 * page_width
-    min_y = min(b['b'] for b in bboxes) / 1000 * page_height # Invert t and b for correct cropping
-    max_x = max(b['r'] for b in bboxes) / 1000 * page_width
-    max_y = max(b['t'] for b in bboxes) / 1000 * page_height
+    min_x = min(b['l'] for b in bboxes) * scale
+    min_y = page_height - (max(b['t'] for b in bboxes) * scale)
+    max_x = max(b['r'] for b in bboxes) * scale
+    max_y = page_height - (min(b['b'] for b in bboxes) * scale)
 
     # Add some padding
     padding = 50
